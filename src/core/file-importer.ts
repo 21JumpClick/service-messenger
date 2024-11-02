@@ -1,5 +1,5 @@
-import { readdirSync, statSync } from 'fs'
-import { resolve } from 'path'
+import {resolve} from "path";
+import * as fs from "node:fs";
 
 export class FileImporter {
   static async import(path: string) {
@@ -12,14 +12,14 @@ export class FileImporter {
   }
 
   static async treeResolver(path: string) {
-    const files = readdirSync(path)
+    const files = fs.readdirSync(path)
     const result: string[] = []
     for (const file of files.filter(
-      (e) =>
+      (e : any) =>
         !e.includes('node_modules')
     )) {
       const filePath = resolve(path, file)
-      const isDirectory = statSync(filePath).isDirectory()
+      const isDirectory = fs.statSync(filePath).isDirectory()
       if (isDirectory) {
         const child = await FileImporter.treeResolver(filePath)
         result.push(...(child || []))

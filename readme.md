@@ -1,4 +1,4 @@
-# @vicgrk/messenger
+# @21jumpclick/service-messenger
 
 > Send message and response to event with ts decorators
 
@@ -24,7 +24,7 @@ The author will try to add support for new depency injectors in the futures.
 You can install the package with just
 
 ```sh
-npm i --save @vicgrk/messenger
+npm i --save @21jumpclick/service-messenger
 ```
 
 ## Documentation
@@ -37,7 +37,7 @@ Init your Messenger in the entrypoint of your app (index.ts) :
 
 ```typescript
 import Container, { Service } from "typedi";
-import { Messenger } from "@vicgrk/messenger";
+import { Messenger } from "@21jumpclick/service-messenger";
 
 Messenger.init({
   rootDir: __dirname,
@@ -60,7 +60,7 @@ For tsed, you can init your Messenger in your main configuration
 ```typescript
 import { AfterInit } from "@tsed/common";
 import { Configuration, Inject, InjectorService } from "@tsed/di";
-import { Messenger } from "@vicgrk/messenger";
+import { Messenger } from "@21jumpclick/service-messenger";
 
 @Module()
 export class Server implements AfterInit {
@@ -110,7 +110,7 @@ export class Server implements AfterInit {
 > To emit to rabbitmq
 
 ```typescript
-import { Messenger } from "@vicgrk/messenger";
+import { Messenger } from "@21jumpclick/service-messenger";
 
 @Service()
 export class MyService {
@@ -142,7 +142,7 @@ In your payment service, just use the @Amqp decorarator
 
 ```typescript
 // first, import your mesh service
-import { Amqp, Message, Origin } from "@vicgrk/messenger";
+import { Amqp, Message, Origin } from "@21jumpclick/service-messenger";
 
 @Service()
 export class MyService {

@@ -17,7 +17,6 @@
     "allowSyntheticDefaultImports": true,
     "importHelpers": true,
     "resolveJsonModule": true,
-    "newLine": "LF",
     "noEmit": true,
     "allowJs": true,
     "skipLibCheck": true,

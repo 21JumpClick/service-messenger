@@ -2,7 +2,7 @@ import { Channel, connect, Connection, Replies } from 'amqplib'
 import { randomBytes } from 'crypto'
 import { BrokerConfig, Callback, MessageOptions } from '../types'
 
-const appId = '@vicgrk/messenger'
+const appId = '@21jumpclick/service-messenger'
 
 export class Broker {
   private rabbitMQ!: Connection

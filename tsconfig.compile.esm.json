@@ -4,9 +4,9 @@
     "baseUrl": ".",
     "module": "ES2020",
     "rootDir": "src",
-    "outDir": "./lib/esm",
+    "outDir": "./dist/esm",
     "declaration": true,
-    "declarationDir": "./lib/types"
+    "declarationDir": "./dist/types"
   },
-  "exclude": ["node_modules", "lib", "examples"]
+  "exclude": ["node_modules", "dist", "examples"]
 }
