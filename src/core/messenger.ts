@@ -1,8 +1,13 @@
-import { Channel, connect, Connection, Replies } from 'amqplib'
-import { randomBytes } from 'crypto'
-import { BrokerConfig, Callback, MessageOptions } from '../types'
+import {Channel, connect, Connection, Replies} from 'amqplib'
+import {randomBytes} from 'crypto'
+import {BrokerConfig, Callback, MessageOptions} from '../types'
 
 const appId = '@21jumpclick/service-messenger'
+
+const allowedAppIds = [
+  appId,
+  '@vicgrk/messenger'
+]
 
 export class Broker {
   private rabbitMQ!: Connection
@@ -10,7 +15,8 @@ export class Broker {
   private broadcastQueue!: Replies.AssertQueue
   private closing = false
 
-  constructor(private opts: BrokerConfig, private exchange: string) { }
+  constructor(private opts: BrokerConfig, private exchange: string) {
+  }
 
   async connect() {
     this.rabbitMQ = await connect(
@@ -24,6 +30,7 @@ export class Broker {
     await this.assertBroadcast()
     this.closing = false
   }
+
   async publish(key: string, data: unknown, options?: MessageOptions) {
     if (this.closing) {
       return
@@ -34,7 +41,11 @@ export class Broker {
     await this.send(key, data, options)
   }
 
-  async listen<T>(cb: Callback<{ key: string; args: any, opts: { origin: string } }>) {
+  async listen<T>(cb: Callback<{
+    key: string;
+    args: any,
+    opts: { origin: string }
+  }>) {
     if (this.closing) {
       return
     }
@@ -47,11 +58,11 @@ export class Broker {
       }
       this.channel.ack(msg)
       let opts = <{ origin: string }>msg.properties.headers
-      opts ||= { origin: 'UNKNOWN' }
+      opts ||= {origin: 'UNKNOWN'}
       const args: { data: T } = JSON.parse(msg.content.toString())
       const key = msg.fields.routingKey.replace(`${this.exchange}.`, '')
       try {
-        cb({ key, args, opts })
+        cb({key, args, opts})
       } catch (error) {
         console.error(error)
       }
@@ -62,26 +73,27 @@ export class Broker {
       }
       this.channel.ack(msg)
       let tmp: T | { data: T } = JSON.parse(msg.content.toString())
-      if (msg.properties.appId === appId && typeof (<{ data: T }>tmp).data !== 'undefined') {
+      if (allowedAppIds.includes(msg.properties.appId) && typeof (<{
+        data: T
+      }>tmp).data !== 'undefined') {
         tmp = (<{ data: T }>tmp).data
       }
       const args = <T>tmp
       let opts = <{ origin: string }>msg.properties.headers
-      opts ||= { origin: 'UNKNOWN' }
+      opts ||= {origin: 'UNKNOWN'}
       const key = msg.fields.routingKey.replace(`${this.exchange}.`, '')
       if (!msg.properties.correlationId) {
         try {
-          cb({ key, args, opts })
+          cb({key, args, opts})
         } catch (error) {
           console.error(error)
         }
-      }
-      else {
+      } else {
         try {
-          const data = await cb({ key, args, opts })
+          const data = await cb({key, args, opts})
           this.channel.sendToQueue(
             msg.properties.replyTo,
-            Buffer.from(JSON.stringify({ data: { error: null, data } })),
+            Buffer.from(JSON.stringify({data: {error: null, data}})),
             {
               correlationId: msg.properties.correlationId,
               headers: {
@@ -92,7 +104,7 @@ export class Broker {
         } catch (error) {
           this.channel.sendToQueue(
             msg.properties.replyTo,
-            Buffer.from(JSON.stringify({ data: { error } })),
+            Buffer.from(JSON.stringify({data: {error}})),
             {
               correlationId: msg.properties.correlationId,
               headers: {
@@ -113,9 +125,12 @@ export class Broker {
       await this.connect()
     }
     const [exchange] = key.split('.')
-    await this.channel.assertExchange(`${exchange}-broadcast`, 'fanout', { durable: true })
-    const buffer = Buffer.from(JSON.stringify({ data }))
-    this.channel.publish(`${exchange}-broadcast`, key, buffer, { appId, headers: { origin: this.exchange } })
+    await this.channel.assertExchange(`${exchange}-broadcast`, 'fanout', {durable: true})
+    const buffer = Buffer.from(JSON.stringify({data}))
+    this.channel.publish(`${exchange}-broadcast`, key, buffer, {
+      appId,
+      headers: {origin: this.exchange}
+    })
   }
 
   async invoke<T>(key: string, data: unknown, options?: MessageOptions) {
@@ -126,7 +141,7 @@ export class Broker {
       await this.connect()
     }
     const correlationId = this.generateCorrelationId()
-    const { queue } = await this.channel.assertQueue('', {
+    const {queue} = await this.channel.assertQueue('', {
       exclusive: true,
       autoDelete: true,
       durable: false,
@@ -178,7 +193,7 @@ export class Broker {
     // if (options?.deduplicationFieldPath) {
     //   opts['x-deduplication-header'] = valueFromPath(data, options.deduplicationFieldPath)
     // }
-    const buffer = Buffer.from(JSON.stringify({ data }))
+    const buffer = Buffer.from(JSON.stringify({data}))
     this.channel.publish(
       exchange,
       key,
@@ -221,7 +236,7 @@ export class Broker {
   }
 
   private async assertBroadcast() {
-    await this.channel.assertExchange(`${this.exchange}-broadcast`, 'fanout', { durable: true })
+    await this.channel.assertExchange(`${this.exchange}-broadcast`, 'fanout', {durable: true})
     this.broadcastQueue = await this.channel.assertQueue('', {
       durable: false,
       exclusive: true,
