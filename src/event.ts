@@ -1,12 +1,13 @@
-import { FileImporter } from './core/file-importer'
-import { Broker } from './core/messenger'
-import { MetadataManager } from './core/metadata'
-import { Config, MessageOptions } from './types'
+import {FileImporter} from './core/file-importer'
+import {Broker} from './core/messenger'
+import {MetadataManager} from './core/metadata'
+import {Config, MessageOptions} from './types'
 
 export class Messenger {
   private broker!: Broker
   private static instance: Messenger
   config!: Config
+
   static getInstance() {
     if (!Messenger.instance) {
       Messenger.instance = new Messenger()
@@ -21,7 +22,8 @@ export class Messenger {
     process.once('beforeExit', async () => {
       try {
         return await this.close()
-      } catch (e) { }
+      } catch (e) {
+      }
     })
   }
 
@@ -34,7 +36,7 @@ export class Messenger {
     this.config = config
     this.broker = new Broker(config.rabbit, config.name)
     this.broker.connect().then(() => {
-      this.broker.listen(({ key, args, opts }) =>
+      this.broker.listen(({key, args, opts}) =>
         MetadataManager.instance().trigger(key, args?.data || args, opts))
     })
   }
@@ -45,9 +47,9 @@ export class Messenger {
 
   publish(type: string, data: any, options?: MessageOptions) {
     if (this.config.verbose) {
-      console.log(`Publishing message to ${type} with payload : \n${JSON.stringify({ data }, null, 2)}`)
+      console.log(`Publishing message to ${type} with payload : \n${JSON.stringify({data}, null, 2)}`)
     }
-    this.broker.publish(type, { data, type }, options)
+    this.broker.publish(type, {data, type, pattern: type}, options)
   }
 
   static broadcast(type: string, data: any) {
@@ -56,9 +58,9 @@ export class Messenger {
 
   broadcast(type: string, data: any) {
     if (this.config.verbose) {
-      console.log(`Broadcasting message to ${type} with payload : \n${JSON.stringify({ data }, null, 2)}`)
+      console.log(`Broadcasting message to ${type} with payload : \n${JSON.stringify({data}, null, 2)}`)
     }
-    this.broker.broadcast(type, { data, type })
+    this.broker.broadcast(type, {data, type, pattern: type})
   }
 
   static invoke<T>(type: string, data: any, options?: MessageOptions) {
@@ -67,9 +69,9 @@ export class Messenger {
 
   async invoke<T>(type: string, data: any, options?: MessageOptions) {
     if (this.config.verbose) {
-      console.log(`Invoking message to ${type} with payload : \n${JSON.stringify({ data }, null, 2)}`)
+      console.log(`Invoking message to ${type} with payload : \n${JSON.stringify({data}, null, 2)}`)
     }
-    const result = await this.broker.invoke<T>(type, { data, type }, options)
+    const result = await this.broker.invoke<T>(type, {data, type}, options)
     if (result === undefined) {
       return null
     }
