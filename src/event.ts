@@ -49,7 +49,7 @@ export class Messenger {
     if (this.config.verbose) {
       console.log(`Publishing message to ${type} with payload : \n${JSON.stringify({data}, null, 2)}`)
     }
-    this.broker.publish(type, {data, type, pattern: type}, options)
+    this.broker.publish(type, {data, type}, options)
   }
 
   static broadcast(type: string, data: any) {
@@ -60,7 +60,7 @@ export class Messenger {
     if (this.config.verbose) {
       console.log(`Broadcasting message to ${type} with payload : \n${JSON.stringify({data}, null, 2)}`)
     }
-    this.broker.broadcast(type, {data, type, pattern: type})
+    this.broker.broadcast(type, {data, type})
   }
 
   static invoke<T>(type: string, data: any, options?: MessageOptions) {

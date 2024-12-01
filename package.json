@@ -3,7 +3,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.18",
+  "version": "1.2.7",
+
   "description": "Amqp lib to send and receive messages from different applications",
   "source": "./src/index.ts",
   "main": "./dist/cjs/index.js",

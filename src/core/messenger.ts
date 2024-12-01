@@ -41,7 +41,7 @@ export class Broker {
     await this.send(key, data, options)
   }
 
-  async listen<T>(cb: Callback<{
+  async listen<T extends {pattern: string}>(cb: Callback<{
     key: string;
     args: any,
     opts: { origin: string }
@@ -59,8 +59,8 @@ export class Broker {
       this.channel.ack(msg)
       let opts = <{ origin: string }>msg.properties.headers
       opts ||= {origin: 'UNKNOWN'}
-      const args: { data: T } = JSON.parse(msg.content.toString())
-      const key = msg.fields.routingKey.replace(`${this.exchange}.`, '')
+      const args: T = JSON.parse(msg.content.toString())
+      const key = args.pattern
       try {
         cb({key, args, opts})
       } catch (error) {
@@ -73,6 +73,7 @@ export class Broker {
       }
       this.channel.ack(msg)
       let tmp: T | { data: T } = JSON.parse(msg.content.toString())
+      const key = (tmp as T).pattern
       if (allowedAppIds.includes(msg.properties.appId) && typeof (<{
         data: T
       }>tmp).data !== 'undefined') {
@@ -81,7 +82,6 @@ export class Broker {
       const args = <T>tmp
       let opts = <{ origin: string }>msg.properties.headers
       opts ||= {origin: 'UNKNOWN'}
-      const key = msg.fields.routingKey.replace(`${this.exchange}.`, '')
       if (!msg.properties.correlationId) {
         try {
           cb({key, args, opts})
@@ -193,7 +193,8 @@ export class Broker {
     // if (options?.deduplicationFieldPath) {
     //   opts['x-deduplication-header'] = valueFromPath(data, options.deduplicationFieldPath)
     // }
-    const buffer = Buffer.from(JSON.stringify({data}))
+    const pattern = key.replace(`${exchange}.`, '')
+    const buffer = Buffer.from(JSON.stringify({data, pattern}))
     this.channel.publish(
       exchange,
       key,
