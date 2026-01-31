@@ -21,8 +21,8 @@ export class Broker {
   async connect() {
     this.rabbitMQ = await connect(
       typeof this.opts === 'string' ? this.opts :
-        `amqp://${this.opts.user || 'guest'}:${this.opts.password || 'guest'}@${this.opts.host || 'localhost'
-        }:${this.opts.port || 5672}`
+      `amqp://${this.opts.user || 'guest'}:${this.opts.password || 'guest'}@${this.opts.host || 'localhost'
+      }:${this.opts.port || 5672}?frameMax=0`
     )
     this.channel = await this.rabbitMQ.createChannel()
     await this.channel.prefetch(10)
